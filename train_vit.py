@@ -68,7 +68,7 @@ if __name__ == '__main__':
     set_seed(random_seed)
     device = torch.device("cuda")
 
-    NUM_EPOCHES = 3 # 25
+    NUM_EPOCHES = 300 # 25
     batch_size = 128
 
     image_size = 32 if dataset_name == 'Cifar10' else 28
