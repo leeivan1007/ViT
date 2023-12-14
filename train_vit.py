@@ -49,21 +49,26 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Evaluate trained RL model on MNIST dataset.')
     parser.add_argument('--dataset', dest='dataset')
-    parser.add_argument('--random_seed', dest='random_seed')
+    parser.add_argument('--random_seed', default=False, dest='random_seed')
     parameter_args = parser.parse_args()
 
     dataset_name = parameter_args.dataset
-    random_seed = int(parameter_args.random_seed)
+    if type(parameter_args.random_seed) == str:
+        random_seed = int(parameter_args.random_seed)
+    elif parameter_args.random_seed == False:
+        random_seed = False
+    folder_path = f'../..'
 
     # %%
 
     # dataset_name = 'Mnist' # Mnist Fashion Cifar10  
     # random_seed = 1
-
+    if random_seed == False: random_seed = np.random.randint(np.iinfo(np.int32).max // 2)
+    
     set_seed(random_seed)
     device = torch.device("cuda")
 
-    NUM_EPOCHES = 300 # 25
+    NUM_EPOCHES = 3 # 25
     batch_size = 128
 
     image_size = 32 if dataset_name == 'Cifar10' else 28
@@ -78,8 +83,8 @@ if __name__ == '__main__':
     hidden_size = 256
     dropout = 0.2
 
-    record_path = f'../../hunternet/records/ViT/{dataset_name}'
-    model_path = f'../../hunternet/models/ViT/{dataset_name}'
+    record_path = f'{folder_path}/records/ViT/{dataset_name}'
+    model_path = f'{folder_path}/models/ViT/{dataset_name}'
 
     if not os.path.isdir(record_path):
         os.makedirs(record_path)
@@ -144,7 +149,7 @@ if __name__ == '__main__':
         for batch_idx, (img, labels) in enumerate(trainloader):
             img = img.to(device)
             labels = labels.to(device)
-
+            
             ########### shift test ###########
             batsh_s, channels, width, height = img.shape
             shift_unit = 1
@@ -153,7 +158,7 @@ if __name__ == '__main__':
             init_pos = 1
             ver_pos = shift_unit + random.randint(-1, 1)
             her_pos = shift_unit + random.randint(-1, 1)
-            copy_tensor[:, :, ver_pos: ver_pos+width, her_pos: her_pos+height] = inputs
+            copy_tensor[:, :, ver_pos: ver_pos+width, her_pos: her_pos+height] = img
             img = copy_tensor[:, :, init_pos: init_pos+width, init_pos: init_pos+height]
             ########### shift test ###########
             
