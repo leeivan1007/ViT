@@ -50,6 +50,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Evaluate trained RL model on MNIST dataset.')
     parser.add_argument('--dataset', dest='dataset')
     parser.add_argument('--random_seed', default=False, dest='random_seed')
+    parser.add_argument('--slight_disturbance', action="store_true", dest='slight_disturbance')
     parameter_args = parser.parse_args()
 
     dataset_name = parameter_args.dataset
@@ -58,13 +59,17 @@ if __name__ == '__main__':
     elif parameter_args.random_seed == False:
         random_seed = False
     folder_path = f'../..'
+    slight_disturbance = parameter_args.slight_disturbance
+    print(slight_disturbance)
 
     # %%
 
     # dataset_name = 'Mnist' # Mnist Fashion Cifar10  
     # random_seed = 1
-    if random_seed == False: random_seed = np.random.randint(np.iinfo(np.int32).max // 2)
-    
+    if random_seed == False: 
+        random_seed = int(time.time())
+        time.sleep(1)
+
     set_seed(random_seed)
     device = torch.device("cuda")
 
@@ -93,7 +98,7 @@ if __name__ == '__main__':
 
     record_txt = f'{record_path}/record.txt' # {get_timeString()}
     best_model = f'{model_path}/{random_seed}.pt'
-
+    print(record_txt)
 
     # %%
     # Dataset
@@ -151,15 +156,16 @@ if __name__ == '__main__':
             labels = labels.to(device)
             
             ########### shift test ###########
-            batsh_s, channels, width, height = img.shape
-            shift_unit = 1
-            s_u = shift_unit * 2
-            copy_tensor = torch.zeros((batsh_s, channels, width+s_u, height+s_u)).to('cuda')
-            init_pos = 1
-            ver_pos = shift_unit + random.randint(-1, 1)
-            her_pos = shift_unit + random.randint(-1, 1)
-            copy_tensor[:, :, ver_pos: ver_pos+width, her_pos: her_pos+height] = img
-            img = copy_tensor[:, :, init_pos: init_pos+width, init_pos: init_pos+height]
+            if slight_disturbance:
+                batsh_s, channels, width, height = img.shape
+                shift_unit = 1
+                s_u = shift_unit * 2
+                copy_tensor = torch.zeros((batsh_s, channels, width+s_u, height+s_u)).to('cuda')
+                init_pos = 1
+                ver_pos = shift_unit + random.randint(-1, 1)
+                her_pos = shift_unit + random.randint(-1, 1)
+                copy_tensor[:, :, ver_pos: ver_pos+width, her_pos: her_pos+height] = img
+                img = copy_tensor[:, :, init_pos: init_pos+width, init_pos: init_pos+height]
             ########### shift test ###########
             
             preds = model(img)
